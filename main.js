@@ -2,6 +2,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebas
 import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { getFirestore, onSnapshot, collection, query, addDoc, serverTimestamp, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
+
 // Configuraciones Mandatorias del Entorno Cloud (Proporcionadas por Canvas/Vercel)
 const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 
@@ -96,12 +97,16 @@ async function sendMessage() {
     // Ruta de la colección de la DB Cloud: /artifacts/{appId}/public/data/messages
     const chatCollectionPath = `artifacts/${appId}/public/data/messages`;
 
+    // CORRECCIÓN: Agregar un timestamp local para asegurar un orden de envío preciso
+    const clientTimestamp = Date.now();
+
     try {
         // Escribe el documento en Firestore (DBaaS)
         await addDoc(collection(db, chatCollectionPath), {
             text: messageText,
             userId: currentUserId,
-            timestamp: serverTimestamp(), // Esto es clave para el orden
+            timestamp: serverTimestamp(), // Marca de tiempo de Firestore (para consistencia a largo plazo)
+            clientTimestamp: clientTimestamp // Marca de tiempo local (para ordenamiento inmediato)
         });
     } catch (error) {
         console.error("Error al enviar el mensaje:", error);
@@ -125,8 +130,21 @@ function listenForMessages() {
             messages.push({ id: doc.id, ...doc.data() });
         });
 
-        // Ordenar mensajes localmente por timestamp
-        messages.sort((a, b) => (a.timestamp?.toMillis() || 0) - (b.timestamp?.toMillis() || 0));
+        // --- CORRECCIÓN DE ORDENAMIENTO REFORZADA ---
+        // Usamos el 'clientTimestamp' (el momento en que el usuario presionó Enviar) como clave principal.
+        messages.sort((a, b) => {
+            const timeA = a.clientTimestamp || (a.timestamp?.toMillis() || 0);
+            const timeB = b.clientTimestamp || (b.timestamp?.toMillis() || 0);
+
+            if (timeA < timeB) return -1;
+            if (timeA > timeB) return 1;
+
+            // Desempate por ID de documento si los tiempos son idénticos
+            return a.id.localeCompare(b.id);
+        });
+
+        console.log("Mensajes ordenados (Antiguo -> Reciente):", messages.map(m => m.text));
+        // --- FIN DE CORRECCIÓN ---
 
 
         if (messages.length === 0) {
@@ -154,10 +172,10 @@ function listenForMessages() {
 
             messageEl.appendChild(userSpan);
             messageEl.appendChild(textP);
-            messagesListEl.appendChild(messageEl);
+            messagesListEl.appendChild(messageEl); // Se añaden en orden cronológico ascendente (de arriba a abajo)
         });
 
-        // Scroll al último mensaje
+        // ** Scroll al último mensaje (más reciente) para que siempre sea visible **
         messagesListEl.scrollTop = messagesListEl.scrollHeight;
     }, (error) => {
         console.error("Error al escuchar los mensajes:", error);
