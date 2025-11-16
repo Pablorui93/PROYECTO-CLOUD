@@ -1,0 +1,50 @@
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Cloud App (Vercel + Firebase)</title>
+    <!-- CSS: Tailwind CDN para estilos de utilidad -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./style.css">
+</head>
+
+<body>
+    <div class="min-h-screen flex items-center justify-center p-4">
+        <div class="w-full max-w-lg bg-white shadow-2xl rounded-2xl p-6 border border-gray-100">
+            <h1 class="text-3xl font-bold text-center text-gray-800 mb-2">Mi Chat Cloud (Vercel, Auth, DB)</h1>
+            <p id="status-message" class="text-center text-sm mb-4 text-gray-500"></p>
+
+            <!-- Contenedor del Chat (Visible solo si hay usuario logueado) -->
+            <div id="chat-container" class="hidden">
+                <div id="messages-list"
+                    class="h-80 flex flex-col overflow-y-auto space-y-3 p-3 bg-gray-50 rounded-lg mb-4 border border-gray-200">
+                    <!-- Los mensajes se cargarán aquí -->
+                    <div class="text-center text-gray-400 p-4">Conectando a Firestore...</div>
+                </div>
+
+                <div class="flex space-x-2">
+                    <input type="text" id="message-input" placeholder="Escribe un mensaje..."
+                        class="flex-grow p-3 border border-gray-300 rounded-xl focus:ring-blue-500 focus:border-blue-500 transition duration-150 shadow-sm">
+                    <button id="send-button" disabled
+                        class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-md">
+                        Enviar
+                    </button>
+                </div>
+                <div class="mt-4 text-xs text-center text-gray-500">
+                    <p>Tu ID de Usuario (Servicio Cloud IDaaS): <span id="user-id"
+                            class="font-mono bg-gray-200 px-2 py-0.5 rounded text-gray-800">Cargando...</span></p>
+                </div>
+            </div>
+
+            <!-- Contenedor de Carga (Visible mientras se autentica) -->
+            <div id="loading-container" class="text-center py-12">
+                <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500 mx-auto mb-4"></div>
+                <p class="text-gray-600">Conectando a los servicios Cloud...</p>
+            </div>
+        </div>
+    </div>
+    <script src="./main.js" type="module"></script>
+</body>
+</html>

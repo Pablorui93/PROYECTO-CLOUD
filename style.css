@@ -1,0 +1,13 @@
+        body { font-family: 'Inter', sans-serif; background-color: #f7f9fc; }
+        /* Estilos específicos para la burbuja del usuario actual (Yo) */
+        .chat-bubble-self { 
+            background-color: #DCF8C6; /* El color verde de WhatsApp */
+            align-self: flex-end; 
+            margin-left: auto; /* Mueve la burbuja a la derecha */
+        }
+        /* Estilos específicos para la burbuja del otro usuario */
+        .chat-bubble-other { 
+            background-color: #FFFFFF; 
+            align-self: flex-start; 
+            margin-right: auto; /* Mueve la burbuja a la izquierda */
+        }
