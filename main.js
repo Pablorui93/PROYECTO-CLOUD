@@ -3,10 +3,9 @@ import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, 
 import { getFirestore, onSnapshot, collection, query, addDoc, serverTimestamp, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 
-// Configuraciones Mandatorias del Entorno Cloud (Proporcionadas por Canvas/Vercel)
 const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 
-// **USAMOS TU CONFIGURACIÓN REAL DE FIREBASE (Servicio Cloud) AQUÍ**
+
 const firebaseConfig = {
     apiKey: "AIzaSyBkx1FiQDPYBlIiRmronUyViJsFMrna8ys",
     authDomain: "proyecto-cloud-28e64.firebaseapp.com",
@@ -35,7 +34,7 @@ let isAuthReady = false;
 
 // Función para inicializar los Servicios Cloud
 async function initializeCloudServices() {
-    // VERIFICACIÓN
+
     if (!firebaseConfig.apiKey) {
         statusMessageEl.textContent = "Error: Configuración de Firebase no válida. (Falta clave API)";
         loadingContainerEl.classList.add('hidden');
@@ -52,7 +51,7 @@ async function initializeCloudServices() {
     // 3. Inicializar Auth (Servicio Cloud IDaaS)
     auth = getAuth(app);
 
-    // Intentar autenticación
+
     try {
         if (initialAuthToken) {
             await signInWithCustomToken(auth, initialAuthToken);
@@ -64,7 +63,7 @@ async function initializeCloudServices() {
         statusMessageEl.textContent = "Error de autenticación. Intenta refrescar.";
     }
 
-    // Listener de estado de autenticación
+
     onAuthStateChanged(auth, (user) => {
         loadingContainerEl.classList.add('hidden');
         isAuthReady = true;
@@ -92,12 +91,11 @@ async function sendMessage() {
     if (!messageInput.value.trim() || !currentUserId) return;
 
     const messageText = messageInput.value.trim();
-    messageInput.value = ''; // Limpiar input
+    messageInput.value = ''; 
 
     // Ruta de la colección de la DB Cloud: /artifacts/{appId}/public/data/messages
     const chatCollectionPath = `artifacts/${appId}/public/data/messages`;
 
-    // CORRECCIÓN: Agregar un timestamp local para asegurar un orden de envío preciso
     const clientTimestamp = Date.now();
 
     try {
@@ -114,14 +112,14 @@ async function sendMessage() {
     }
 }
 
-// Función para escuchar mensajes en tiempo real (DBaaS)
+
 function listenForMessages() {
     if (!db) return;
 
     const chatCollectionPath = `artifacts/${appId}/public/data/messages`;
     const messagesQuery = query(collection(db, chatCollectionPath));
 
-    // onSnapshot: Conexión en tiempo real a la DB Cloud
+
     onSnapshot(messagesQuery, (snapshot) => {
         messagesListEl.innerHTML = ''; // Limpiar la lista
 
@@ -130,8 +128,6 @@ function listenForMessages() {
             messages.push({ id: doc.id, ...doc.data() });
         });
 
-        // --- CORRECCIÓN DE ORDENAMIENTO REFORZADA ---
-        // Usamos el 'clientTimestamp' (el momento en que el usuario presionó Enviar) como clave principal.
         messages.sort((a, b) => {
             const timeA = a.clientTimestamp || (a.timestamp?.toMillis() || 0);
             const timeB = b.clientTimestamp || (b.timestamp?.toMillis() || 0);
@@ -144,7 +140,7 @@ function listenForMessages() {
         });
 
         console.log("Mensajes ordenados (Antiguo -> Reciente):", messages.map(m => m.text));
-        // --- FIN DE CORRECCIÓN ---
+
 
 
         if (messages.length === 0) {
@@ -155,9 +151,8 @@ function listenForMessages() {
         messages.forEach(message => {
             const isSelf = message.userId === currentUserId;
 
-            // Estilo del mensaje según el remitente
             const messageEl = document.createElement('div');
-            // Usamos las clases definidas en el bloque <style>
+
             messageEl.className = `max-w-[80%] p-3 rounded-xl shadow-sm text-sm break-words ${isSelf ? 'chat-bubble-self' : 'chat-bubble-other'
                 }`;
 
@@ -172,10 +167,10 @@ function listenForMessages() {
 
             messageEl.appendChild(userSpan);
             messageEl.appendChild(textP);
-            messagesListEl.appendChild(messageEl); // Se añaden en orden cronológico ascendente (de arriba a abajo)
+            messagesListEl.appendChild(messageEl); 
         });
 
-        // ** Scroll al último mensaje (más reciente) para que siempre sea visible **
+
         messagesListEl.scrollTop = messagesListEl.scrollHeight;
     }, (error) => {
         console.error("Error al escuchar los mensajes:", error);
@@ -183,7 +178,7 @@ function listenForMessages() {
     });
 }
 
-// Event Listeners
+
 sendButton.addEventListener('click', sendMessage);
 messageInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') {
